@@ -1,5 +1,6 @@
 use eyre::{Result, eyre};
-use std::path::{Path, PathBuf};
+use std::io::Write;
+use std::path::Path;
 use std::process::Command;
 
 fn main() -> Result<()> {
@@ -35,6 +36,9 @@ fn main() -> Result<()> {
 		return Err(eyre!("Build failed"))
 	}
 
+	// Create the dist folder:
+	let _ = std::fs::create_dir("dist");
+
 	// Link everything together into a wasm dynamic library:
 	let objects = glob::glob("build/*.o")?;
 	let mut files = Vec::new();
@@ -46,13 +50,21 @@ fn main() -> Result<()> {
 			"--export-all",
 			"--no-entry",
 			"-o",
-			"build/mbedtls.wasm"
+			"dist/mbedtls.wasm"
 		])
 		.args(files)
 		.status()?;
 	if !status.success() {
 		return Err(eyre!("Linking failed."))
 	}
+
+	// Embed the wasm modules's bytes into a JavaScript module to make it easier to import in Deno/WebBrowser:
+	let wasm_file = std::fs::File::open("dist/mbedtls.wasm")?;
+	let mut wasm_file = base64_stream::ToBase64Reader::new(wasm_file);
+	let mut module_bytes_file = std::fs::File::create("dist/module_bytes.mjs")?;
+	module_bytes_file.write_all(b"export default await fetch(\"data:application/wasm;base64,")?;
+	std::io::copy(&mut wasm_file, &mut module_bytes_file)?;
+	module_bytes_file.write_all(b"\");")?;
 
 	Ok(())
 }
