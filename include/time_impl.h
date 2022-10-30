@@ -1,6 +1,5 @@
+#include <stdlib.h>
 #include <time.h>
-
-#define weak_alias(a, b)
 
 long long __tm_to_secs(const struct tm *);
 int __secs_to_tm(long long, struct tm *);

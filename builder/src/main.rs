@@ -49,6 +49,7 @@ fn main() -> Result<()> {
 		.args([
 			"--export-all",
 			"--no-entry",
+			// "--allow-undefined",
 			"-o",
 			"dist/mbedtls.wasm"
 		])

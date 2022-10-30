@@ -4,3 +4,6 @@
 [submodule "vendor/musl"]
 	path = vendor/musl
 	url = git://git.musl-libc.org/musl
+[submodule "vendor/walloc"]
+	path = vendor/walloc
+	url = https://github.com/wingo/walloc.git
