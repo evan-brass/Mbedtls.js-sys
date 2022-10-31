@@ -50,6 +50,7 @@ fn main() -> Result<()> {
 			"--export-all",
 			"--no-entry",
 			// "--allow-undefined",
+			"--import-memory",
 			"-o",
 			"dist/mbedtls.wasm"
 		])
@@ -63,9 +64,9 @@ fn main() -> Result<()> {
 	let wasm_file = std::fs::File::open("dist/mbedtls.wasm")?;
 	let mut wasm_file = base64_stream::ToBase64Reader::new(wasm_file);
 	let mut module_bytes_file = std::fs::File::create("dist/module_bytes.mjs")?;
-	module_bytes_file.write_all(b"export default await fetch(\"data:application/wasm;base64,")?;
+	module_bytes_file.write_all(b"export default \"data:application/wasm;base64,")?;
 	std::io::copy(&mut wasm_file, &mut module_bytes_file)?;
-	module_bytes_file.write_all(b"\");")?;
+	module_bytes_file.write_all(b"\";")?;
 
 	Ok(())
 }

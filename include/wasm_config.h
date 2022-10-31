@@ -1,11 +1,16 @@
 #include "imports.h"
 
 // Platform abstraction layer initialization:
-// #define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+#define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
 #define MBEDTLS_PLATFORM_C
 #define MBEDTLS_HAVE_TIME
 #define MBEDTLS_HAVE_TIME_DATE
 #define MBEDTLS_PLATFORM_MEMORY
+#define MBEDTLS_PLATFORM_STD_MEM_HDR <stdlib.h>
+#define MBEDTLS_PLATFORM_CALLOC_MACRO calloc
+#define MBEDTLS_PLATFORM_FREE_MACRO free
+#define MBEDTLS_PLATFORM_SNPRINTF_MACRO snprintf
+#include <stdio.h>
 // #define MBEDTLS_PLATFORM_STD_SNPRINTF
 
 #define MBEDTLS_DEPRECATED_REMOVED
@@ -127,7 +132,7 @@
 #define MBEDTLS_ECDSA_C
 #define MBEDTLS_ECJPAKE_C
 #define MBEDTLS_ECP_C
-#define MBEDTLS_ENTROPY_C
+// #define MBEDTLS_ENTROPY_C
 // #define MBEDTLS_ERROR_C
 #define MBEDTLS_GCM_C
 #define MBEDTLS_HKDF_C
@@ -138,8 +143,8 @@
 #define MBEDTLS_MD5_C
 // #define MBEDTLS_NET_C
 #define MBEDTLS_OID_C
-// #define MBEDTLS_PEM_PARSE_C
-// #define MBEDTLS_PEM_WRITE_C
+#define MBEDTLS_PEM_PARSE_C
+#define MBEDTLS_PEM_WRITE_C
 #define MBEDTLS_PK_C
 #define MBEDTLS_PK_PARSE_C
 #define MBEDTLS_PK_WRITE_C

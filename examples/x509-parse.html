@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Testing</title>
+	</head>
+	<body>
+		<h1>WebRTC Cert Parse</h1>
+		<p>This example uses mbedtls (compiled to WebAssembly) to parse an RTCCertificate.  The example only supports Chrome-based browsers.  Other browsers lack the feature to read the raw DER encoding of an RTCCertificate.</p>
+		<p>Technically, we create two RTCPeerConnections and connect them together.  Then we call <code>.getRemoteCertificates()</code> on one of them.</p>
+		<pre id="output"></pre>
+		<script type="module">
+			import mbedtls, { memory, wasm_module } from "../dist/mbedtls.sys.mjs";
+			const output_el = document.querySelector('#output');
+
+			try {
+				console.log(mbedtls);
+				console.log(memory);
+				console.log(wasm_module);
+	
+				const mem = new Uint8Array(memory.buffer);
+	
+				// Generate and retrieve the bytes for an RTCCertificate.
+				const cert = await RTCPeerConnection.generateCertificate({ name: "ECDSA", namedCurve: "P-256" });
+				let cert_chain = [];
+				{
+					const a = new RTCPeerConnection({ certificates: [cert] });
+					const b = new RTCPeerConnection();
+					a.onicecandidate = ({ candidate }) => b.addIceCandidate(candidate);
+					b.onicecandidate = ({ candidate }) => a.addIceCandidate(candidate);
+					const dc = a.createDataChannel("_get_cert_bytes_");
+					const connected = new Promise((res, rej) => {
+						dc.onopen = res;
+						dc.onerror = rej;
+					});
+					await a.setLocalDescription();
+					await b.setRemoteDescription(a.localDescription);
+					await b.setLocalDescription();
+					await a.setRemoteDescription(b.localDescription);
+	
+					// Wait for the connection to be established.
+					await connected;
+	
+					cert_chain = b.sctp.transport.getRemoteCertificates();
+					a.close();
+					b.close();
+				}
+	
+				// Prepare our mbedtls_x509_crt struct:
+				const cert_ptr = mbedtls.malloc(500); // Hopefully 500 bytes is enough.  I wish I could somehow use sizeof() but dynamically at runtime.
+				if (cert_ptr === 0) { throw new Error("Out of mem."); }
+				mbedtls.mbedtls_x509_crt_init(cert_ptr);
+	
+				// Load the first certificate into mbedtls's memory:
+				const cert_bytes = cert_chain[0];
+				if (!cert_bytes) throw new Error("Failed to get cert chain.");
+				const cert_bytes_len = cert_bytes.byteLength;
+				const cert_bytes_ptr = mbedtls.malloc(cert_bytes_len);
+				if (cert_bytes_ptr === 0) { throw new Error("Out of mem."); }
+				mem.set(new Uint8Array(cert_bytes), cert_bytes_ptr); // Copy the cert_bytes into wasm memory
+	
+				// Parse the RTCCertificate's DER bytes:
+				let res = mbedtls.mbedtls_x509_crt_parse_der_nocopy(cert_ptr, cert_bytes_ptr, cert_bytes_len);
+				if (res < 0) { throw new Error("Certificate parsing failed."); }
+	
+				// Make a buffer to put the certificate's "info" string:
+				const info_ptr = mbedtls.calloc(1, 2000);
+				if (info_ptr === 0) { throw new Error("nomem"); }
+				res = mbedtls.mbedtls_x509_crt_info(info_ptr, 2000, 0, cert_ptr);
+				if (res < 0) { throw new Error("Failed to generate the info string for the certificate."); }
+				const info_len = res;
+	
+				// Parse that buffer into a string:
+				const info_buffer = new Uint8Array(mem.buffer, info_ptr, info_len);
+				const info = (new TextDecoder("utf-8", { fatal: true })).decode(info_buffer);
+
+				output_el.innerText = info;
+			} catch (e) {
+				output_el.innerText = String(e);
+				output_el.style.color = "red";
+			}
+		</script>
+	</body>
+</html>
