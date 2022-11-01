@@ -20,11 +20,11 @@ const imports = {
 		memory,
 		time(dest) {
 			// Date.now gives us the number of *miliseconds* since January 1, 1970
-			const secs = Math.trunc(Date.now() / 1000);
+			const secs = BigInt(Math.trunc(Date.now() / 1000));
 			if (dest != 0) {
 				// Write secs to the pointer:
 				const view = new DataView(memory.buffer);
-				view.setBigInt64(dest, BigInt(secs), true);
+				view.setBigInt64(dest, secs, true);
 			}
 			return secs;
 		},
