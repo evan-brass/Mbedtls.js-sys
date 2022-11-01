@@ -51,6 +51,7 @@ fn main() -> Result<()> {
 			"--no-entry",
 			// "--allow-undefined",
 			"--import-memory",
+			"--growable-table",
 			"-o",
 			"dist/mbedtls.wasm"
 		])
