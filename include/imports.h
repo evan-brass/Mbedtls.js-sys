@@ -9,5 +9,8 @@ __attribute__((import_name("time"))) time_t time(time_t *);
 __attribute__((import_name("rand"))) int rand(unsigned char *, size_t);
 __attribute__((import_name("set_timer"))) void set_timer(void*, unsigned long, unsigned long);
 __attribute__((import_name("get_timer"))) int get_timer(void*);
+__attribute__((import_name("send"))) int send(void*, const unsigned char *, size_t);
+__attribute__((import_name("recv"))) int recv(void*, const unsigned char *, size_t);
+
 
 #endif

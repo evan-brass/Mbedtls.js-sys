@@ -1,5 +1,14 @@
 import module_dataurl from "./module_bytes.mjs";
 
+// Make a setter / getter for handling network traffic:
+let ssl_send;
+let ssl_recv;
+export function set_ssl_send(func) {
+	ssl_send = func;
+}
+export function set_ssl_recv(func) {
+	ssl_recv = func;
+}
 
 export const memory = new WebAssembly.Memory({
 	initial: 10 // What should this actually be set too?
@@ -18,6 +27,20 @@ const imports = {
 				view.setBigInt64(dest, BigInt(secs), true);
 			}
 			return secs;
+		},
+		send(ctx, ptr, len) {
+			const packet = new Uint8Array(memory.buffer, ptr, len);
+			if (ssl_send) {
+				return ssl_send(ctx, ptr);
+			}
+			return 0;
+		},
+		recv(ctx, ptr, len) {
+			const dest_buf = new Uint8Array(memory.buffer, ptr, len);
+			if (ssl_recv) {
+				return ssl_recv(ctx, dest_buf);
+			}
+			return 0;
 		},
 		set_timer(ssl, int_ms, fin_ms) {
 			const old_timeout = timers.get(ssl);

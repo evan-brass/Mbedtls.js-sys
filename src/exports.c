@@ -17,5 +17,13 @@ int (*get_timer_ptr()) (void*) {
 	return &get_timer;
 }
 
+// Get function pointers for the send and receive imports:
+int (*get_send_ptr())(void*, const unsigned char *, size_t) {
+	return &send;
+}
+int (*get_recv_ptr())(void*, const unsigned char *, size_t) {
+	return &recv;
+}
+
 // Allocators
 // TODO: 
