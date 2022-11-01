@@ -11,6 +11,9 @@ export default function make_imports(memory) {
 					view.setBigInt64(dest, BigInt(secs), true);
 				}
 				return secs;
+			},
+			rand(ptr, len) {
+				crypto.getRandomValues(new Uint8Array(memory.buffer, ptr, len));
 			}
 		}
 	};
