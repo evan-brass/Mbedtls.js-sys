@@ -31,7 +31,7 @@ const imports = {
 		send(ctx, ptr, len) {
 			const packet = new Uint8Array(memory.buffer, ptr, len);
 			if (ssl_send) {
-				return ssl_send(ctx, ptr);
+				return ssl_send(ctx, packet);
 			}
 			return 0;
 		},
