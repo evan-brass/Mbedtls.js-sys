@@ -1,0 +1,5 @@
+#define MBEDTLS_CONFIG_FILE "wasm_config.h"
+#include "wasm_config.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/x509_crt.h"
