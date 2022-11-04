@@ -1,4 +1,4 @@
-use std::alloc::{System, GlobalAlloc, Layout};
+// use std::alloc::{System, GlobalAlloc, Layout};
 // use std::mem::MaybeUninit;
 // use wasm_bindgen::prelude::*;
 
@@ -10,17 +10,19 @@ pub mod mbedtls {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn malloc(len: usize) -> *mut usize {
-	let size = len + std::mem::size_of::<usize>();
-	let ret = System.alloc(Layout::from_size_align(size, 1).unwrap()) as *mut usize;
+pub unsafe extern "C" fn malloc(len: usize) -> *mut u8 {
+	let size = (len / std::mem::size_of::<usize>()) + 2;
+	let ret = Box::into_raw(vec![0usize; size].into_boxed_slice());
+	let ret = (*ret).as_mut_ptr();
 	ret.write(size);
-	ret.offset(1)
+	ret.offset(1) as *mut u8
 }
 #[no_mangle]
-pub unsafe extern "C" fn free(ptr: *mut usize) {
+pub unsafe extern "C" fn free(ptr: *mut u8) {
+	let ptr = ptr as *mut usize;
 	let ptr = ptr.offset(-1);
 	let size = ptr.read();
-	System.dealloc(ptr as *mut u8, Layout::from_size_align(size, 1).unwrap());
+	let _ = Box::from_raw(std::slice::from_raw_parts_mut(ptr, size).as_mut_ptr());
 }
 #[no_mangle]
 pub extern "C" fn time(dest: *mut i64) -> i64 {
