@@ -1,3 +1,4 @@
+// use wasm_bindgen::prelude::*;
 // use std::alloc::{System, GlobalAlloc, Layout};
 // use std::mem::MaybeUninit;
 // use wasm_bindgen::prelude::*;
@@ -9,16 +10,27 @@ pub mod mbedtls {
 	include!(concat!(env!("OUT_DIR"), "/mbedtls.rs"));
 }
 
+// #[wasm_bindgen]
+// extern "C" {
+// 	#[wasm_bindgen(js_namespace = console)]
+// 	fn log(msg: &str);
+// }
+
 #[no_mangle]
 pub unsafe extern "C" fn malloc(len: usize) -> *mut u8 {
 	let size = (len / std::mem::size_of::<usize>()) + 2;
 	let ret = Box::into_raw(vec![0usize; size].into_boxed_slice());
 	let ret = (*ret).as_mut_ptr();
 	ret.write(size);
-	ret.offset(1) as *mut u8
+	let ret = ret.offset(1) as *mut u8;
+	// log(&format!("malloc: {ret:?} ({size})"));
+	ret
 }
 #[no_mangle]
 pub unsafe extern "C" fn free(ptr: *mut u8) {
+	if ptr.is_null() { return; }
+
+	// log(&format!("free: {ptr:?}"));
 	let ptr = ptr as *mut usize;
 	let ptr = ptr.offset(-1);
 	let size = ptr.read();
