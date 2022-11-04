@@ -32,7 +32,7 @@ pub extern "C" fn time(dest: *mut i64) -> i64 {
 	secs
 }
 #[no_mangle]
-pub extern "C" fn f_rng(_: *mut u8, ptr: *mut u8, len: usize) -> i32 {
+pub unsafe extern "C" fn f_rng(_: *mut std::ffi::c_void, ptr: *mut std::ffi::c_uchar, len: usize) -> std::ffi::c_int {
 	let buf = unsafe { std::slice::from_raw_parts_mut(ptr, len) };
 	web_sys::window().unwrap()
 		.crypto().unwrap()
